@@ -1,6 +1,6 @@
-
 /**
- * Guard: run script only once per page.
+ * market tree: active category + раскрытие родителей
+ * ориентируется НЕ на href, а на параметр ?c= и data-id
  */
 (function () {
   if (window.__marketTreeScriptLoadedlist) return;
@@ -8,16 +8,15 @@
 
   document.addEventListener('DOMContentLoaded', function () {
 
-    const normalizePath = (href) => {
-      try {
-        return new URL(href, window.location.origin).pathname.replace(/\/+$/, '');
-      } catch (e) {
-        return '';
-      }
-    };
+    const container = document.getElementById('market-tree-list');
+    if (!container) return;
 
-    const showCollapse = (container, collapseEl) => {
-      if (!collapseEl || !container.contains(collapseEl)) return;
+    const params = new URLSearchParams(window.location.search);
+    const currentCat = params.get('c'); // текущая категория market
+    if (!currentCat) return;
+
+    const showCollapse = (collapseEl) => {
+      if (!collapseEl) return;
 
       try {
         if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
@@ -43,64 +42,46 @@
       }
     };
 
-    const processTree = (container) => {
-      if (container.dataset.treeInitialized) return;
-      container.dataset.treeInitialized = '1';
+    // ищем элемент текущей категории по data-id
+    const activeItem = container.querySelector(`.list-group-item[data-id="${CSS.escape(currentCat)}"]`);
+    if (!activeItem) return;
 
-      const currentPath = window.location.pathname.replace(/\/+$/, '');
+    // подсветка ссылки текущей категории
+    const activeLink = activeItem.querySelector('a[href]');
+    if (activeLink) {
+      activeLink.classList.add('active', 'fw-bold', 'text-primary');
+    }
 
-      let activeLink = null;
-      let bestLen = 0;
+    // раскрываем все родительские collapse вверх по дереву
+    let collapse = activeItem.closest('.collapse');
+    while (collapse && container.contains(collapse)) {
+      showCollapse(collapse);
+      const parentItem = collapse.closest('.list-group-item');
+      collapse = parentItem ? parentItem.closest('.collapse') : null;
+    }
 
-      container.querySelectorAll('a[href]').forEach(a => {
-        const href = normalizePath(a.getAttribute('href'));
-        if (!href) return;
+    // синхронизация иконок при ручном клике
+    container.querySelectorAll('.toggle-subcats').forEach(btn => {
+      const targetSel = btn.getAttribute('data-bs-target');
+      if (!targetSel) return;
 
-        if (currentPath === href || currentPath.startsWith(href + '/')) {
-          if (href.length > bestLen) {
-            bestLen = href.length;
-            activeLink = a;
-          }
-        }
-      });
+      const collapseEl = container.querySelector(targetSel);
+      if (!collapseEl) return;
 
-      if (activeLink) {
-        activeLink.classList.add('active', 'fw-bold', 'text-primary');
+      const icon = btn.querySelector('i');
 
-        let collapse = activeLink.closest('.collapse');
-        while (collapse && container.contains(collapse)) {
-          showCollapse(container, collapse);
-          const parentItem = collapse.closest('.list-group-item');
-          collapse = parentItem ? parentItem.closest('.collapse') : null;
-        }
-      }
+      const sync = () => {
+        const shown = collapseEl.classList.contains('show');
+        btn.setAttribute('aria-expanded', shown ? 'true' : 'false');
+        if (!icon) return;
+        icon.classList.toggle('fa-chevron-left', !shown);
+        icon.classList.toggle('fa-chevron-down', shown);
+      };
 
-      // sync icons on manual toggle
-      container.querySelectorAll('.toggle-subcats').forEach(btn => {
-        const targetSel = btn.getAttribute('data-bs-target');
-        if (!targetSel) return;
-
-        const collapseEl = container.querySelector(targetSel);
-        if (!collapseEl) return;
-
-        const icon = btn.querySelector('i');
-
-        const sync = () => {
-          const shown = collapseEl.classList.contains('show');
-          btn.setAttribute('aria-expanded', shown ? 'true' : 'false');
-          if (!icon) return;
-          icon.classList.toggle('fa-chevron-left', !shown);
-          icon.classList.toggle('fa-chevron-down', shown);
-        };
-
-        collapseEl.addEventListener('shown.bs.collapse', sync);
-        collapseEl.addEventListener('hidden.bs.collapse', sync);
-        sync();
-      });
-    };
-
-    const container = document.getElementById('market-tree-list');
-    if (container) processTree(container);
+      collapseEl.addEventListener('shown.bs.collapse', sync);
+      collapseEl.addEventListener('hidden.bs.collapse', sync);
+      sync();
+    });
 
   });
 })();
