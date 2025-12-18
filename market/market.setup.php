@@ -13,6 +13,10 @@ Auth_guests=R
 Lock_guests=A
 Auth_members=RW1
 Lock_members=
+Requires_modules=
+Recommends_modules=
+Requires_plugins=urleditor
+Recommends_plugins=
 Admin_icon=
 [END_COT_EXT]
 
@@ -39,4 +43,5 @@ marketmetatitle=07:string:::
 marketmetadesc=08:string:::
 marketmaxlistsperpage=09:select:5,6,7,8,9,10,15,20:10:
 [END_COT_EXT_CONFIG_STRUCTURE]
+
 ==================== */
