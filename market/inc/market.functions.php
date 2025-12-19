@@ -213,35 +213,83 @@ function cot_market_selectcat($check, $name, $subcat = '', $hideprivate = true)
  *
  * @param string $cat Код категории
  * @return int
+ *
+ * Cotonti Siena 0.9.26 / PHP 8.4+
  */
 function cot_market_count_with_children($cat)
 {
     global $structure, $db, $db_market;
 
-    if (empty($cat) || !isset($structure['market'][$cat])) {
+    // базовая валидация
+    if (
+        empty($cat)
+        || empty($structure['market'])
+        || !isset($structure['market'][$cat])
+        || empty($structure['market'][$cat]['path'])
+    ) {
         return 0;
     }
 
-    // собираем все дочерние категории всех уровней
+    $parentPath = (string) $structure['market'][$cat]['path'];
+
+    // собираем все дочерние категории
     $cats = [$cat];
     foreach ($structure['market'] as $code => $data) {
-        if (strpos($data['path'], $structure['market'][$cat]['path'] . '.') === 0) {
+
+        // защита от null / отсутствующих path
+        if (empty($data['path'])) {
+            continue;
+        }
+
+        // дочерние категории по path
+        if (strpos((string)$data['path'], $parentPath . '.') === 0) {
             $cats[] = $code;
         }
     }
 
-    // безопасные плейсхолдеры
+    if (empty($cats)) {
+        return 0;
+    }
+
+    // плейсхолдеры
     $placeholders = implode(',', array_fill(0, count($cats), '?'));
 
     $sql = "
-        SELECT COUNT(*) 
+        SELECT COUNT(*)
         FROM $db_market
         WHERE fieldmrkt_state = 0
           AND fieldmrkt_cat IN ($placeholders)
     ";
 
-    return (int)$db->query($sql, $cats)->fetchColumn();
+    return (int) $db->query($sql, $cats)->fetchColumn();
 }
+
+/**
+ * Считает количество товаров в конкретной категории 
+ *
+ * @param string $cat Код категории
+ * @return int
+ *
+ * Cotonti Siena 0.9.26 / PHP 8.4+
+ */
+
+function cot_market_count_active_in_cat($cat)
+{
+    global $db, $db_market;
+
+    if (empty($cat)) {
+        return 0;
+    }
+
+    return (int) $db->query(
+        "SELECT COUNT(*) 
+         FROM $db_market 
+         WHERE fieldmrkt_state = 0 
+           AND fieldmrkt_cat = ?",
+        [$cat]
+    )->fetchColumn();
+}
+
 
 
 /**
@@ -353,14 +401,26 @@ function cot_build_structure_market_tree($parent = '', $selected = '', $level = 
         $subcats = !empty($structure['market'][$row]['subcats']) ? array_filter($structure['market'][$row]['subcats'], function($cat) use ($blacklist) {
             return !in_array($cat, $blacklist);
         }) : [];
+		
+		//Считает количество товаров в категории и во всех её потомках fieldmrkt_state = 0
 		$parent_count = cot_market_count_with_children($row);
+		
+		// Считает количество товаров в конкретной категории fieldmrkt_state = 0
+		$row_count = cot_market_count_active_in_cat($row);
 
         $t1->assign([
             "ROW_ID" => $row,
             "ROW_TITLE" => htmlspecialchars($structure['market'][$row]['title']),
             "ROW_DESC" => $structure['market'][$row]['desc'],
-            "ROW_COUNT" => $structure['market'][$row]['count'],
-			 "ROW_PARENT_COUNT" => $parent_count ? ' <span class="badge bg-info ms-1 small">'.$parent_count.'</span>' : '',
+			"ROW_COUNT" => $row_count,
+           // "ROW_COUNT" => $structure['market'][$row]['count'],
+			/* 	
+				$structure['market'][$row]['count'] — это кешированное значение структуры, оно:
+				не знает про fieldmrkt_state
+				считает все товары, независимо от статуса
+				не фильтруется SQL’ом
+			 */
+			"ROW_PARENT_COUNT" => $parent_count ? ' <span class="badge bg-info ms-1 small">'.$parent_count.'</span>' : '',
             "ROW_ICON" => $structure['market'][$row]['icon'],
             "ROW_HREF" => cot_url("market", $urlparams),
             "ROW_SELECTED" => (!empty($selected) && (strpos($selected, $row) === 0 || $selected === $row)) ? 1 : 0,
