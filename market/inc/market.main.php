@@ -199,11 +199,36 @@ if ($item['fieldmrkt_totaltabs'] > 1) {
 	$item['fieldmrkt_text'] = $item['fieldmrkt_tabs'][$item['fieldmrkt_tab']];
 
 	// Temporarily disable easypagenav to allow 0-based numbers
+//	$tmp = Cot::$cfg['easypagenav'];
+//	Cot::$cfg['easypagenav'] = false;
+//	$pn = cot_pagenav('market', (empty($al) ? 'id='.$id : 'al='.$al), $item['fieldmrkt_tab'], $item['fieldmrkt_totaltabs'], 1, 'pg');
+//	$item['fieldmrkt_tabnav'] = $pn['main'];
+//	Cot::$cfg['easypagenav'] = $tmp;
+	
+	// Временно выключаем easypagenav, чтобы номера шли с 0
 	$tmp = Cot::$cfg['easypagenav'];
 	Cot::$cfg['easypagenav'] = false;
-	$pn = cot_pagenav('market', (empty($al) ? 'id='.$id : 'al='.$al), $item['fieldmrkt_tab'], $item['fieldmrkt_totaltabs'], 1, 'pg');
+
+	// Самое главное — передаём категорию ОБЯЗАТЕЛЬНО
+	$base = 'c=' . $item['fieldmrkt_cat'];
+	if (!empty($al)) {
+		$base .= '&al=' . $al;
+	} else {
+		$base .= '&id=' . $id;
+	}
+
+	$pn = cot_pagenav(
+		'market',
+		$base,                          // теперь с категориями пагинация
+		$item['fieldmrkt_tab'],
+		$item['fieldmrkt_totaltabs'],
+		1,
+		'pg'
+	);
+
 	$item['fieldmrkt_tabnav'] = $pn['main'];
 	Cot::$cfg['easypagenav'] = $tmp;
+
 
 	$t->assign([
 		'MARKET_MULTI_TABNAV' => $item['fieldmrkt_tabnav'],
@@ -234,3 +259,4 @@ $moduleBody = $t->text('MAIN');
 if ($itemStaticCacheEnabled) {
 	Cot::$cache->static->write();
 }
+
