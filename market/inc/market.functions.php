@@ -955,6 +955,7 @@ function cot_market_import($source = 'POST', $ritem = [], $auth = [])
 	$ritem['fieldmrkt_title']    = cot_import('ritemmarkettitle', $source, 'TXT', 255);
 	$ritem['fieldmrkt_desc']     = cot_import('ritemmarketdesc', $source, 'TXT', 255);
 	$ritem['fieldmrkt_text']     = cot_import('ritemmarkettext', $source, 'HTM');
+	$ritem['fieldmrkt_pcod']     = cot_import('ritemmarketpcod', $source, 'TXT', 64); // код товара 
 	$ritem['fieldmrkt_parser']   = cot_import('ritemmarketparser', $source, 'ALP', 64);
 	$ritem['fieldmrkt_author']   = cot_import('ritemmarketauthor', $source, 'TXT', 100);
 
@@ -1460,3 +1461,4 @@ function cot_getmarketlist($template = 'index', $count = 5, $sqlsearch = '', $or
     // Возвращаем готовый HTML
     return $t->text('MARKET');
 }
+
