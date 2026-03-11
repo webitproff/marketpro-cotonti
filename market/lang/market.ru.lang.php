@@ -168,3 +168,12 @@ $L['market_user_products'] = 'Товары пользователя';
 $L['market_no_products'] = 'Нет товаров';
 $L['market_price'] = 'Цена по умолчанию';
 
+// результаты поиска в списке 
+$Ls['market_declen_items_sq_found'] = "товар,товара,товаров";
+$L['market_search_found'] = 'Найдено всего <span class="badge rounded-pill bg-primary bg-opacity-10 text-dark"> %1$s </span>, на этой странице: %2$s по запросу: <span class="badge rounded-pill bg-success"> %3$s </span>';
+$L['market_search_none'] = 'По запросу %1$s ничего не найдено';
+
+$L['market_search_in_title']              = 'Искать только в названиях';
+$L['market_search_in_title_and_descr']    = 'Искать в названиях и описании';
+$L['market_search_in_pcod']               = 'Искать по коду товара';
+
