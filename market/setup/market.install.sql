@@ -6,7 +6,7 @@
 -- Таблица товаров
 CREATE TABLE IF NOT EXISTS `cot_market` (
   `fieldmrkt_id` int UNSIGNED NOT NULL AUTO_INCREMENT,
-  `fieldmrkt_pcod` varchar(64) NOT NULL DEFAULT '',
+  `fieldmrkt_pcod` varchar(64) NOT NULL DEFAULT '',   -- код товара (например, артикул, не уникальное)
   `fieldmrkt_alias` varchar(255) NOT NULL DEFAULT '',
   `fieldmrkt_state` tinyint UNSIGNED NOT NULL DEFAULT '0',
   `fieldmrkt_cat` varchar(255) NOT NULL,
@@ -27,8 +27,11 @@ CREATE TABLE IF NOT EXISTS `cot_market` (
   KEY `fieldmrkt_alias` (`fieldmrkt_alias`),
   KEY `fieldmrkt_date` (`fieldmrkt_date`),
   KEY `fieldmrkt_ownerid` (`fieldmrkt_ownerid`),
-  KEY `fieldmrkt_title` (`fieldmrkt_title`)
+  KEY `fieldmrkt_title` (`fieldmrkt_title`),
+  -- Индекс для поля кода товара (ускоряет поиск и сортировку по pcod)
+  KEY `fieldmrkt_pcod` (`fieldmrkt_pcod`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Полнотекстовые индексы для поиска
 ALTER TABLE `cot_market` ADD FULLTEXT INDEX `ft_title` (`fieldmrkt_title`);
 ALTER TABLE `cot_market` ADD FULLTEXT INDEX `ft_title_text` (`fieldmrkt_title`, `fieldmrkt_text`);
