@@ -425,12 +425,19 @@ foreach ($sqllist_rowset as $row) {
         $sub_count = $sql_market_subcount->fetchColumn();
     }
 
+/*  
+	проблема с точкой (пока нет времени)
     $categoryPath = isset(Cot::$structure['market'][$row['fieldmrkt_cat']]['path'])
         ? Cot::$structure['market'][$row['fieldmrkt_cat']]['path']
         : (isset(Cot::$structure['market'][$row['fieldmrkt_cat']]['code']) ? Cot::$structure['market'][$row['fieldmrkt_cat']]['code'] : $row['fieldmrkt_cat']);
 
     // НЕ затираем $urlParams для админки
     $itemUrlParams = ['c' => $categoryPath];
+		
+ */
+ // Используем код категории напрямую
+    $itemUrlParams = ['c' => $row['fieldmrkt_cat']];
+	
     if (!empty($row['fieldmrkt_alias'])) {
         $itemUrlParams['al'] = $row['fieldmrkt_alias'];
     } else {
@@ -500,3 +507,4 @@ foreach (cot_getextplugins('market.admin.tags') as $pl) {
 
 $t->parse('MAIN');
 $adminMain = $t->text('MAIN');
+
