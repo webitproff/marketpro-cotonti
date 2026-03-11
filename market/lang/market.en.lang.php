@@ -157,4 +157,14 @@ $Ls['market_in_drafts'] = "product in drafts,products in drafts";
 $L['market_add_product'] = 'Add product';
 $L['market_user_products'] = 'User products';
 $L['market_no_products'] = 'No products';
+
 $L['market_price'] = 'Default price';
+
+// search results in list
+$Ls['market_declen_items_sq_found'] = "item,items,items";
+$L['market_search_found'] = 'Total found <span class="badge rounded-pill bg-primary bg-opacity-10 text-dark"> %1$s </span>, on this page: %2$s for query: <span class="badge rounded-pill bg-success"> %3$s </span>';
+$L['market_search_none'] = 'Nothing found for query %1$s';
+
+$L['market_search_in_title']           = 'Search only in titles';
+$L['market_search_in_title_and_descr'] = 'Search in titles and descriptions';
+$L['market_search_in_pcod']            = 'Search by product code';
