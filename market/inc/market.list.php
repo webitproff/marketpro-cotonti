@@ -1,6 +1,4 @@
 <?php
-// Определение начала PHP-файла
-
 /**
  * Store item list
  * filename market.list.php
@@ -8,7 +6,7 @@
  * @copyright (c) webitproff
  * @license BSD
  */
-// Документация: описание модуля Market, его назначение, автор и лицензия
+// 11M32026
 
 use cot\modules\market\inc\MarketDictionary;
 // Подключение пространства имен для использования класса MarketDictionary
@@ -45,6 +43,19 @@ $sq = cot_import('sq', 'G', 'TXT');
 
 $sq = ($sq !== null) ? trim($sq) : '';
 // Удаление пробелов из поискового запроса и установка пустой строки, если $sq равен null
+
+
+// Импорт параметра области поиска: title – только название, full – название и описание, pcod – код товара
+$search_in = cot_import('search_in', 'G', 'ALP', 8);
+if (!in_array($search_in, ['title', 'full', 'pcod'])) {
+    $search_in = 'title'; // по умолчанию ищем только в названиях
+}
+
+// подсветка ключевого слова в поиске
+$highlight_words = array();
+if (!empty($sq)) {
+    $highlight_words = preg_split('/\s+/', $sq, -1, PREG_SPLIT_NO_EMPTY);
+}
 
 $maxItemRowsPerPage = (int) Cot::$cfg['market']['cat___default']['marketmaxlistsperpage'];
 // Установка максимального количества элементов на страницу из конфигурации по умолчанию для модуля Market
@@ -235,12 +246,6 @@ if (!Cot::$usr['isadmin'] && $c !== 'unvalidated' && $c !== 'saved_drafts') {
     $where['date'] = "fieldmrkt_date <= UNIX_TIMESTAMP()";
 }
 
-// Добавление условия для поискового запроса, если он указан
-if (!empty($sq)) {
-    // Условие для поиска по заголовку или тексту товара в рамках выбранной категории
-    $sq_escaped = Cot::$db->quote("%$sq%");
-    $where['search'] = "(fieldmrkt_title LIKE $sq_escaped OR fieldmrkt_text LIKE $sq_escaped)";
-}
 
 // Проверяем, существует ли поле для сортировки в таблице market
 if (!Cot::$db->fieldExists(Cot::$db->market, "fieldmrkt_$s")) {
@@ -260,6 +265,7 @@ $list_url_path = [];
 
 if (!empty($sq)) {
     $list_url_path['sq'] = $sq; // Добавление sq в URL
+    $list_url_path['search_in'] = $search_in; // добавляем область поиска
 }
 // Если код категории указан, добавляем его в параметры URL
 if (!empty($c)) {
@@ -344,6 +350,7 @@ $join_columns = isset($join_columns) ? $join_columns : '';
 // Инициализируем или используем существующие условия соединения для SQL-запроса
 $join_condition = isset($join_condition) ? $join_condition : '';
 
+
 /* === Hook === */
 // Комментарий, описывающий подключение хуков для плагинов перед формированием SQL-запроса
 
@@ -354,6 +361,22 @@ foreach (cot_getextplugins('market.list.query') as $pl) {
 }
 /* ===== */
 // Завершение блока хуков
+
+
+// Принудительно устанавливаем условие поиска в зависимости от режима,
+// игнорируя любые изменения, внесённые плагинами в хук.
+if (!empty($sq)) {
+    $sq_escaped = Cot::$db->quote("%$sq%");
+    if ($search_in === 'title') {
+        $where['search'] = "fieldmrkt_title LIKE $sq_escaped";
+    } elseif ($search_in === 'full') {
+        $where['search'] = "(fieldmrkt_title LIKE $sq_escaped OR fieldmrkt_text LIKE $sq_escaped)";
+    } elseif ($search_in === 'pcod') {
+        $where['search'] = "fieldmrkt_pcod LIKE $sq_escaped";
+    }
+}
+ 
+ 
 // Проверка, заданы ли поля фильтрации ($o) и их значения ($p)
 if ($o && $p) {
     // Проверка, является ли $o массивом, если нет — преобразуем в массив
@@ -535,6 +558,28 @@ $categoryIcon = !empty($cat['icon'])
         ]
     )
     : '';
+	
+	
+// Определяем область подсветки в зависимости от режима поиска
+/* 
+ * пример, для подсетки ключевого слова в заголовках
+ * <div class="card-title">
+ * 	<a href="{LIST_ROW_URL}">{LIST_ROW_TITLE}</a>
+ * </div>
+ */
+/*
+ * подсвечиваем весь контейнер с товарами. 
+ * <div class="row g-4 mb-3" id="market-items-container"> 
+ *    <!-- BEGIN: LIST_ROW -->
+ */	
+$highlight_scope = '';
+if ($search_in == 'title') {
+    $highlight_scope = '.card-title'; // подсвечиваем только заголовки
+} elseif ($search_in == 'full') {
+    $highlight_scope = '#market-items-container'; 
+} elseif ($search_in == 'pcod') {
+    $highlight_scope = ''; // для кода товара подсветка не нужна
+}
 
 // Назначение переменных шаблона для отображения информации о категории
 $t->assign([
@@ -562,6 +607,10 @@ $t->assign([
     'LIST_BREADCRUMBS' => $catpath,
     // Укороченный путь хлебных крошек
     'LIST_BREADCRUMBS_SHORT' => $catpath_short,
+     // подсветка ключевого слова в поиске
+    'SEARCH_HIGHLIGHT_WORDS' => json_encode($highlight_words, JSON_UNESCAPED_UNICODE),
+    'SEARCH_HIGHLIGHT_ACTIVE' => !empty($sq),
+    'SEARCH_HIGHLIGHT_SCOPE' => $highlight_scope,   // теперь переменная определена
 ]);
 
 // Назначение переменных шаблона для формы поиска
@@ -790,24 +839,33 @@ $extp = cot_getextplugins('market.list.loop');
 // Получение всех строк результата SQL-запроса для списка товаров
 $sqllist_rowset = $sqllist->fetchAll();
 
-// Генерация сообщения о результатах поиска после выполнения всех операций
-// === Генерация сообщения о поиске один раз после всех операций ===
+// === Генерация информационного сообщения о результатах поиска ===
 if (!empty($sq)) {
-    // Проверка, задан ли поисковый запрос
-    $countResults = count($sqllist_rowset);
-    // Подсчет количества найденных строк
-    if ($countResults > 0) {
-        // Если найдены результаты, формируем сообщение с правильным склонением
-        $searchMsg = cot_declension($countResults, ['позиция', 'позиции', 'позиций']) 
-            . ' найдено по запросу: <strong>' . htmlspecialchars($sq) . '</strong>';
+    // Общее количество найденных товаров (из переменной $totallines, полученной из SQL COUNT)
+    $totalFound = (int)$totallines;
+    // Количество товаров на текущей странице (из массива результатов SQL)
+    $currentPageCount = count($sqllist_rowset);
+
+    if ($totalFound > 0) {
+        // Получаем правильную форму слова "товар" для общего количества, используя массив склонений из языкового файла
+        $totalStr = cot_declension($totalFound, $Ls['market_declen_items_sq_found']);
+        // Получаем правильную форму слова "товар" для количества на текущей странице
+        $currentStr = cot_declension($currentPageCount, $Ls['market_declen_items_sq_found']);
+
+        // Формируем сообщение с помощью языковой константы и подстановки значений
+        // %1$s — общее количество с единицей измерения (например, "14 товаров")
+        // %2$s — количество на странице с единицей измерения (например, "5 товаров")
+        // %3$s — поисковый запрос (экранированный)
+        $searchMsg = sprintf($L['market_search_found'], $totalStr, $currentStr, htmlspecialchars($sq));
     } else {
-        // Если результаты не найдены, формируем сообщение об отсутствии результатов
-        $searchMsg = 'По запросу <strong>' . htmlspecialchars($sq) . '</strong> ничего не найдено';
+        // Если ничего не найдено — используем языковую константу для пустого результата
+        $searchMsg = sprintf($L['market_search_none'], htmlspecialchars($sq));
     }
 } else {
-    // Если поисковый запрос не задан, устанавливаем пустое сообщение
+    // Если поисковый запрос не задан, сообщение не выводится
     $searchMsg = '';
 }
+
 
 // Инициализация флага для альтернативного набора строк результатов
 $sqllist_rowset_other = false;
@@ -906,3 +964,4 @@ if (Cot::$cache && $usr['id'] === 0 && Cot::$cfg['cache_market']) {
     // Запись страницы в кэш для неавторизованных пользователей
     Cot::$cache->static->write();
 }
+
