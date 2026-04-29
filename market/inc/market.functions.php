@@ -1391,19 +1391,59 @@ function cot_market_enum(
 	return $item_query_html;
 }
 
+/**
+ * Callback-функция для настройки сортировки товаров на главной странице
+ *
+ * Используется в конфигурации модуля market (market.setup.php)
+ * для формирования выпадающего списка вариантов сортировки.
+ *
+ * @return array Ассоциативный массив [SQL-выражение => Название]
+ */
+function cot_market_config_main_order()
+{
+    // Базовые варианты сортировки по системным полям
+    $options = [
+        'fieldmrkt_updated DESC' => 'Updated (newest first)',
+        'fieldmrkt_date DESC'    => 'Date (newest first)',
+        'fieldmrkt_date ASC'     => 'Date (oldest first)',
+        'fieldmrkt_title ASC'    => 'Title (A-Z)',
+        'fieldmrkt_title DESC'   => 'Title (Z-A)',
+        'fieldmrkt_costdflt ASC'  => 'Price (low to high)',
+        'fieldmrkt_costdflt DESC' => 'Price (high to low)',
+        'fieldmrkt_count DESC'   => 'Count (highest first)',
+        'fieldmrkt_count ASC'    => 'Count (lowest first)',
+        'fieldmrkt_id DESC'      => 'ID (newest first)',
+    ];
 
+    // Добавляем сортировку по дополнительным полям, если они есть
+    global $cot_extrafields, $db_market;
+    if (!empty($cot_extrafields[$db_market])) {
+        foreach ($cot_extrafields[$db_market] as $exfld) {
+            $options['fieldmrkt_' . $exfld['field_name'] . ' DESC'] = $exfld['field_description'] . ' (desc)';
+            $options['fieldmrkt_' . $exfld['field_name'] . ' ASC']  = $exfld['field_description'] . ' (asc)';
+        }
+    }
+    return $options;
+}
 /**
  * Возвращает список товаров market для отображения на главной
  *
  * @param string $template Шаблон для вывода (по умолчанию 'index')
  * @param int $count Количество товаров для отображения (по умолчанию 5)
  * @param string $sqlsearch Дополнительные условия WHERE для SQL (по умолчанию '')
- * @param string $order Порядок сортировки SQL (по умолчанию 'fieldmrkt_date DESC')
+ * @param string $order Порядок сортировки SQL (по умолчанию 'fieldmrkt_updated DESC')
  * @return string Сформированный HTML код для вывода
  */
-function cot_getmarketlist($template = 'index', $count = 5, $sqlsearch = '', $order = 'fieldmrkt_updated DESC')
+function cot_getmarketlist($template = 'index', $count = 5, $sqlsearch = '', $order = null)
 {
     global $db, $db_market, $cfg, $db_users;
+
+    // Если сортировка не передана явно, берём из настроек модуля
+    if ($order === null) {
+        $order = isset($cfg['market']['market_main_order']) 
+                 ? $cfg['market']['market_main_order'] 
+                 : 'fieldmrkt_updated DESC';
+    }
 
     // Проверка прав доступа пользователя для модуля market
     list($usr['auth_read'], $usr['auth_write'], $usr['isadmin']) = cot_auth('market', 'any', 'RWA');
@@ -1461,4 +1501,3 @@ function cot_getmarketlist($template = 'index', $count = 5, $sqlsearch = '', $or
     // Возвращаем готовый HTML
     return $t->text('MARKET');
 }
-
