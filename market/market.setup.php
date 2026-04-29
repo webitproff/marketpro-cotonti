@@ -31,6 +31,7 @@ marketlist_default_title=08:string::Заголовок магазина по-у�
 marketlist_default_desc=09:string::Описание магазина по-умолчанию, когда не выбрана категория или товар:
 marketblacktreecatspage=10:string:::Category codes (black list codes page structure as system, unvalidated e.t.c)
 market_currency=06:select:USD,EUR,RUB,UAH,USDT,BTC:BTC:
+market_main_order=80:callback:cot_market_config_main_order():fieldmrkt_updated DESC:
 [END_COT_EXT_CONFIG]
 
 [BEGIN_COT_EXT_CONFIG_STRUCTURE]
