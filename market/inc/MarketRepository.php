@@ -57,15 +57,14 @@ class MarketRepository extends BaseRepository
 
     protected function afterFetch(array $item): array
     {
-        $item['fieldmrkt_id'] = (int) $item['fieldmrkt_id'];
-        $item['fieldmrkt_state'] = (int) $item['fieldmrkt_state'];
-        $item['fieldmrkt_ownerid'] = (int) $item['fieldmrkt_ownerid'];
-        $item['fieldmrkt_date'] = (int) $item['fieldmrkt_date'];
-        $item['fieldmrkt_begin'] = (int) $item['fieldmrkt_begin'];
-        $item['fieldmrkt_expire'] = (int) $item['fieldmrkt_expire'];
-        $item['fieldmrkt_updated'] = (int) $item['fieldmrkt_updated'];
-
-        $item['fieldmrkt_count'] = (int) $item['fieldmrkt_count'];
+		$item['fieldmrkt_id'] = (int)($item['fieldmrkt_id'] ?? 0);
+		$item['fieldmrkt_state'] = (int)($item['fieldmrkt_state'] ?? 0);
+		$item['fieldmrkt_ownerid'] = (int)($item['fieldmrkt_ownerid'] ?? 0);
+		$item['fieldmrkt_date'] = (int)($item['fieldmrkt_date'] ?? 0);
+		$item['fieldmrkt_begin'] = (int)($item['fieldmrkt_begin'] ?? 0);
+		$item['fieldmrkt_expire'] = (int)($item['fieldmrkt_expire'] ?? 0);
+		$item['fieldmrkt_updated'] = (int)($item['fieldmrkt_updated'] ?? 0);
+		$item['fieldmrkt_count'] = (int)($item['fieldmrkt_count'] ?? 0);
 
 
         return $item;
