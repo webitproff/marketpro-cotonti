@@ -15,8 +15,14 @@ require_once cot_incfile('forms');
 $id = cot_import('id', 'G', 'INT');
 $c = cot_import('c', 'G', 'TXT');
 //$a = cot_import('a', 'P', 'ALP'); // или 'POST' если форма отправляется методом POST
-if (empty($c) && !isset(Cot::$structure['market'][$c])) {
-	$c = '';
+
+/* 
+ * уже под PHP 8.5 
+ * $c сбрасывается в пустую строку, чтобы дальше скрипт не пытался работать с несуществующей категорией (не ломался, не выдавал ошибки базы данных и т.п.) 
+ * проверка защищает весь код от невалидного $c, превращая все недопустимые значения в пустую строку, которая дальше корректно обрабатывается как «категория не указана»
+*/
+if (!is_string($c) || $c === '' || !isset(Cot::$structure['market'][$c])) {
+    $c = '';
 }
 
 list(Cot::$usr['auth_read'], Cot::$usr['auth_write'], Cot::$usr['isadmin']) = cot_auth('market', 'any');
