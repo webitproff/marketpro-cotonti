@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS `cot_market` (
   `fieldmrkt_metadesc` varchar(255) DEFAULT '',
   `fieldmrkt_text` MEDIUMTEXT DEFAULT NULL,
   `fieldmrkt_costdflt` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `fieldmrkt_cost_usd` DECIMAL(10,2) NOT NULL DEFAULT '0.00',
   `fieldmrkt_parser` varchar(64) DEFAULT '',
   `fieldmrkt_ownerid` int UNSIGNED NOT NULL DEFAULT '0',
   `fieldmrkt_date` int UNSIGNED NOT NULL DEFAULT '0',
