@@ -7,7 +7,7 @@
 
 /**
  * Market module
- *
+ * FILENAME: market.userdetails.php
  * @package Market
  * @copyright (c) webitproff
  * @license BSD
@@ -17,21 +17,101 @@ defined('COT_CODE') or die('Wrong URL');
 use cot\modules\market\inc\MarketDictionary;
 require_once cot_incfile('market', 'module');
 
+$perpageincat = isset(Cot::$cfg['market']['cat___default']['marketmaxlistsperpageincat'])
+    ? Cot::$cfg['market']['cat___default']['marketmaxlistsperpageincat']
+    : (Cot::$cfg['market']['cat___default']['marketmaxlistsperpage'] ?? 10);
+
+// ========== НАЧАЛО: AJAX-обработчик ==========
+if (cot_import('ajax', 'G', 'INT') == 1)
+{
+    global $usr, $urr, $db_market;
+
+    $tab = cot_import('tab', 'G', 'ALP');
+    $category = ($tab == 'market') ? cot_import('cat', 'G', 'TXT') : '';
+    $d = cot_import('dmarket', 'G', 'INT');
+
+    $where = [];
+    $order = [];
+    if ($usr['id'] == 0 || ($usr['id'] != $urr['user_id'] && !$usr['isadmin']))
+        $where['state'] = 'fieldmrkt_state = ' . MarketDictionary::STATE_PUBLISHED;
+    if ($category)
+        $where['cat'] = 'fieldmrkt_cat = ' . Cot::$db->quote($category);
+    $where['owner'] = 'fieldmrkt_ownerid = ' . (int)$urr['user_id'];
+    $order['date'] = 'fieldmrkt_date DESC';
+
+    foreach (cot_getextplugins('market.userdetails.query') as $pl) include $pl;
+
+    $where_sql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+    $order_sql = $order ? 'ORDER BY ' . implode(', ', $order) : '';
+
+    // Общее количество товаров
+    $totalitems = Cot::$db->query("SELECT COUNT(*) FROM $db_market AS m $where_sql")->fetchColumn();
+
+    $sqllist = Cot::$db->query("SELECT * FROM $db_market AS m $where_sql $order_sql LIMIT $d, $perpageincat");
+    $items = $sqllist->fetchAll();
+
+    if (empty($items)) {
+        header('Content-Type: application/json');
+        echo json_encode(['rows' => '', 'pagination' => '']);
+        exit;
+    }
+
+    $extp_loop = cot_getextplugins('market.userdetails.loop');
+    $ajax_tpl = new XTemplate(cot_tplfile(['market', 'userdetails'], 'module'));
+
+    foreach ($items as $item_data)
+    {
+        $tags = cot_generate_markettags($item_data, 'MARKET_ROW_', Cot::$cfg['market']['markettruncatetext'] ?? 0, $usr['isadmin'], Cot::$cfg['homebreadcrumb']);
+        if (!empty($tags['MARKET_ROW_ADMIN_DELETE_URL']))
+        {
+            $urlParams = ['m' => 'details', 'id' => $urr['user_id'], 'u' => $urr['user_name'], 'tab' => 'market'];
+            if ($category) $urlParams['cat'] = $category;
+            if ($d > 0) $urlParams['dmarket'] = $d;
+            $delUrl = cot_url('market', ['m' => 'edit', 'a' => 'update', 'delete' => '1', 'id' => $item_data['fieldmrkt_id'], 'x' => Cot::$sys['xk'], 'redirect' => base64_encode(cot_url('users', $urlParams, '', true))]);
+            $delConfirm = cot_confirm_url($delUrl, 'market');
+            $tags['MARKET_ROW_ADMIN_DELETE'] = cot_rc_link($delConfirm, Cot::$L['Delete'], 'class="confirmLink"');
+            $tags['MARKET_ROW_ADMIN_DELETE_URL'] = $delConfirm;
+        }
+        foreach ($extp_loop as $pl) include $pl;
+        $ajax_tpl->assign($tags);
+        $ajax_tpl->parse('MAIN.MARKET_ROWS');
+    }
+    $rows_html = $ajax_tpl->text('MAIN.MARKET_ROWS');
+
+    // Генерация HTML пагинации через отдельный шаблон
+    $opt_array = ['m'=>'details', 'id'=>$urr['user_id'], 'u'=>$urr['user_name'], 'tab'=>'market'];
+    if ($category) $opt_array['cat'] = $category;
+
+    $pagenav = cot_pagenav('users', $opt_array, $d, $totalitems, $perpageincat, 'dmarket');
+
+    $pagination_tpl = new XTemplate(cot_tplfile(['market', 'pagination'], 'module'));
+    $pagination_tpl->assign(cot_generatePaginationTags($pagenav));
+    $pagination_tpl->parse('MAIN');
+    $pagination_html = $pagination_tpl->text('MAIN');
+
+    header('Content-Type: application/json');
+    echo json_encode([
+        'rows' => $rows_html,
+        'pagination' => $pagination_html
+    ]);
+    exit;
+}
+// ========== КОНЕЦ: AJAX-обработчик ==========
+
 list($usr['auth_read'], $usr['auth_write'], $usr['isadmin']) = cot_auth('market', 'any', 'RWA');
 
 $tab = cot_import('tab', 'G', 'ALP');
 $category = ($tab == 'market') ? cot_import('cat', 'G', 'TXT') : '';
-list($pg, $d, $durl) = cot_import_pagenav('dmarket', Cot::$cfg['market']['cat___default']['marketmaxlistsperpage']);
+list($pg, $d, $durl) = cot_import_pagenav('dmarket', $perpageincat);
 
 // Вкладка товаров
 $t1 = new XTemplate(cot_tplfile(['market', 'userdetails'], 'module'));
 $t1->assign([
     'MARKET_ADD_URL' => cot_url('market', 'm=add'),
-    'MARKET_ADD_SHOWBUTTON' => $usr['auth_write'] ? true : false, // Для совместимости
+    'MARKET_ADD_SHOWBUTTON' => $usr['auth_write'] ? true : false,
 ]);
 
 $where = [];
-$params = [];
 $order = [];
 
 if ($usr['id'] == 0 || ($usr['id'] != $urr['user_id'] && !$usr['isadmin'])) {
@@ -68,10 +148,26 @@ $sql_market_count_cat = Cot::$db->query("SELECT fieldmrkt_cat, COUNT(fieldmrkt_c
 $sql_market_count = Cot::$db->query("SELECT COUNT(*) FROM $db_market $wherecount_sql");
 $market_count_all = $market_count = $sql_market_count->fetchColumn();
 
+// Переменные для кнопки "Загрузить ещё"
+$totalpages = ceil($market_count / $perpageincat);
+$currentpage = floor($d / $perpageincat) + 1;
+
+$t1->assign([
+    'LOAD_MORE_URL' => cot_url('users', ['m' => 'details', 'id' => $urr['user_id'], 'u' => $urr['user_name'], 'tab' => 'market', 'cat' => $category, 'ajax' => 1]),
+    'LOAD_MORE_PERPAGE' => $perpageincat,
+    'LOAD_MORE_TOTALPAGES' => $totalpages,
+    'LOAD_MORE_CURRENTPAGE' => $currentpage,
+    'LOAD_MORE_LANG' => json_encode([
+        'load_more' => $L['market_load_more'] ?? 'Загрузить ещё (страница %d из %d)',
+        'loading'   => $L['market_loading'] ?? '<i class="fa fa-spinner fa-spin"></i> Загрузка...',
+        'error'     => $L['market_load_error'] ?? 'Ошибка загрузки. Попробуйте ещё раз.'
+    ])
+]);
+
 $sqllist = Cot::$db->query("SELECT * FROM $db_market AS m
     $where_sql
     $order_sql
-    LIMIT $d, " . Cot::$cfg['market']['cat___default']['marketmaxlistsperpage']);
+    LIMIT $d, $perpageincat");
 
 foreach ($sql_market_count_cat as $value) {
     $t1->assign([
@@ -95,29 +191,18 @@ if ($category) {
     $opt_array['cat'] = $category;
 }
 
-$pagenav = cot_pagenav('users', $opt_array, $d, $market_count, Cot::$cfg['market']['cat___default']['marketmaxlistsperpage'], 'dmarket');
-
-$t1->assign([
-    'PAGENAV_PAGES' => $pagenav['main'],
-    'PAGENAV_PREV' => $pagenav['prev'],
-    'PAGENAV_NEXT' => $pagenav['next'],
-    'PAGENAV_COUNT' => $market_count,
-]);
+$pagenav = cot_pagenav('users', $opt_array, $d, $market_count, $perpageincat, 'dmarket');
+$t1->assign(cot_generatePaginationTags($pagenav));
 
 $sqllist_rowset = $sqllist->fetchAll();
-$sqllist_idset = [];
-
-foreach ($sqllist_rowset as $item) {
-    $sqllist_idset[$item['fieldmrkt_id']] = $item['fieldmrkt_alias'];
-}
 
 /* === Hook === */
 $extp = cot_getextplugins('market.userdetails.loop');
 /* ===== */
 
-foreach ($sqllist_rowset as $item) {
+foreach ($sqllist_rowset as $item_data) {
     $marketTags = cot_generate_markettags(
-        $item,
+        $item_data,
         'MARKET_ROW_',
         Cot::$cfg['market']['markettruncatetext'] ?? 0,
         Cot::$usr['isadmin'],
@@ -135,7 +220,7 @@ foreach ($sqllist_rowset as $item) {
                 'm' => 'edit',
                 'a' => 'update',
                 'delete' => '1',
-                'id' => $item['fieldmrkt_id'],
+                'id' => $item_data['fieldmrkt_id'],
                 'x' => Cot::$sys['xk'],
                 'redirect' => base64_encode(cot_url('users', $urlParams, '', true)),
             ]
@@ -166,7 +251,7 @@ foreach (cot_getextplugins('market.userdetails.tags') as $pl) {
 }
 /* ===== */
 
-Cot::$sys['noindex'] = false; // Убираем noindex для вкладки товаров
+Cot::$sys['noindex'] = false;
 
 $t1->parse('MAIN');
 
