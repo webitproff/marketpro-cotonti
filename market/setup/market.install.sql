@@ -1,0 +1,43 @@
+-- 
+-- Market module DB installation (file market.install.sql)
+-- Path:    modules/market/setup/market.install.sql
+-- Date: Aug 27, 2026
+-- 
+-- package market
+-- version 5.7.9
+-- author webitproff
+-- copyright Copyright (c) webitproff 2026 | https://github.com/webitproff/marketpro-cotonti
+-- license BSD
+--
+
+-- Таблица товаров
+CREATE TABLE IF NOT EXISTS `cot_market` (
+  `fieldmrkt_id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `fieldmrkt_pcod` varchar(64) NOT NULL DEFAULT '',
+  `fieldmrkt_alias` varchar(255) NOT NULL DEFAULT '',
+  `fieldmrkt_state` tinyint UNSIGNED NOT NULL DEFAULT '0',
+  `fieldmrkt_cat` varchar(255) NOT NULL,
+  `fieldmrkt_title` varchar(255) NOT NULL,
+  `fieldmrkt_desc` varchar(255) DEFAULT '',
+  `fieldmrkt_metatitle` varchar(255) DEFAULT '',
+  `fieldmrkt_metah1` varchar(255) DEFAULT '',
+  `fieldmrkt_metadesc` varchar(255) DEFAULT '',
+  `fieldmrkt_text` MEDIUMTEXT DEFAULT NULL,
+  `fieldmrkt_costdflt` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `fieldmrkt_cost_usd` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `fieldmrkt_parser` varchar(64) DEFAULT '',
+  `fieldmrkt_ownerid` int UNSIGNED NOT NULL DEFAULT '0',
+  `fieldmrkt_date` int UNSIGNED NOT NULL DEFAULT '0',
+  `fieldmrkt_updated` int UNSIGNED NOT NULL DEFAULT '0',
+  `fieldmrkt_count`  mediumint UNSIGNED NOT NULL DEFAULT '0',
+  PRIMARY KEY (`fieldmrkt_id`),
+  KEY `fieldmrkt_cat` (`fieldmrkt_cat`),
+  KEY `fieldmrkt_alias` (`fieldmrkt_alias`),
+  KEY `fieldmrkt_date` (`fieldmrkt_date`),
+  KEY `fieldmrkt_ownerid` (`fieldmrkt_ownerid`),
+  KEY `fieldmrkt_title` (`fieldmrkt_title`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Полнотекстовые индексы для поиска
+ALTER TABLE `cot_market` ADD FULLTEXT INDEX `ft_title` (`fieldmrkt_title`);
+ALTER TABLE `cot_market` ADD FULLTEXT INDEX `ft_title_text` (`fieldmrkt_title`, `fieldmrkt_text`);
