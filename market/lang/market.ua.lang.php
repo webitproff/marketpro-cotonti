@@ -15,7 +15,7 @@
  * ReadMeMore:          https://abuyfile.com/ru/market/cotonti/plugs/marketpro
  * Support:             https://abuyfile.com/ru/forums/cotonti/custom/marketpro
  *
- * Date: Sep 09, 2026
+ * Date: Sep 26, 2026
  *
  * @package market
  * @version 5.7.9
@@ -115,6 +115,12 @@ $L['cfg_marketcount_admin_hint'] = 'Включити відвідування а
 
 $L['cfg_marketautovalidate'] = 'Автоматичне затвердження товарів';
 $L['cfg_marketautovalidate_hint'] = 'Автоматично затверджувати публікацію товарів, створених користувачем з правом адміністрування розділу';
+
+$L['cfg_market_select2_custom_css'] = 'Підключати користувацькі стилі Select2 з модуля Market';
+$L['cfg_market_select2_custom_css_hint'] = 'Підключає файл <strong>modules/market/css/marketSelect2CustomStyles.css</strong>, у якому містяться стилі для кастомізації бібліотеки Select2, через яку виводимо категорії в різних локаціях. Рекомендується перенести стилі до файлу стилів теми та вимкнути цю опцію.';
+
+$L['cfg_market_select2_custom_js'] = 'Підключати користувацькі скрипти Select2 з модуля Market';
+$L['cfg_market_select2_custom_js_hint'] = 'Підключає файл <strong>modules/market/js/marketSelect2CustomJS.js</strong>, у якому містяться скрипти для кастомізації бібліотеки Select2, через яку виводимо категорії в різних локаціях. Рекомендується ці скрипти перенести до окремого файлу скриптів у папку вашої теми та вимкнути цю опцію.';
 // =========================================
 // END COT EXT CONFIG
 // =========================================
@@ -344,6 +350,7 @@ $L['market_catalog'] = 'Каталог';
 $L['market_price'] = 'Ціна';
 $L['market_price_international'] = 'Ціна в міжнародній валюті (для конвертації)';
 $L['market_price_base']          = 'Ціна/вартість у базовій валюті';
+$L['market_price_converted_label'] = $L['market_price_base'];
 $L['market_go_to_catalog'] = 'Перейти до товарів';
 $L['market_no_products'] = 'Немає товарів';
 $L['market_catEmpty'] = 'У категорії поки немає товарів';
@@ -430,7 +437,7 @@ $L['market_owner_vendor_link'] = 'Вітрина продавця';
 $L['market_vendors_search_username'] = 'Введіть логін продавця';
 
 // Custom localization file for Cotonti using via function cot_langfile_custom() in system/functions.custom.php
-// include File from Path: modules/market/lang/market.custom.uk.lang.php
+// include File from Path: modules/market/lang/market.custom.ua.lang.php
 // How it works:  https://github.com/webitproff/functions.custom.php-cotonti
 // How it works:  https://abuyfile.com/ru/cotonti/reading/rukovodstvo-po-polzovatelskim-funkciyam-cotonti
 if (function_exists('cot_langfile_custom')) {

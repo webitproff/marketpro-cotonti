@@ -15,7 +15,7 @@
  * ReadMeMore:          https://abuyfile.com/ru/market/cotonti/plugs/marketpro
  * Support:             https://abuyfile.com/ru/forums/cotonti/custom/marketpro
  *
- * Date: Sep 09, 2026
+ * Date: Sep 26, 2026
  *
  * @package market
  * @version 5.7.9
@@ -115,6 +115,12 @@ $L['cfg_marketcount_admin_hint'] = 'Include administrator visits in site traffic
 
 $L['cfg_marketautovalidate'] = 'Automatic item validation';
 $L['cfg_marketautovalidate_hint'] = 'Automatically approve publication of items created by a user with section administration rights';
+
+$L['cfg_market_select2_custom_css'] = 'Enable custom Select2 styles from the Market module';
+$L['cfg_market_select2_custom_css_hint'] = 'Includes the file <strong>modules/market/css/marketSelect2CustomStyles.css</strong>, which contains styles for customizing the Select2 library used to output categories in various locations. It is recommended to move the styles to your theme stylesheet and disable this option.';
+
+$L['cfg_market_select2_custom_js'] = 'Enable custom Select2 scripts from the Market module';
+$L['cfg_market_select2_custom_js_hint'] = 'Includes the file <strong>modules/market/js/marketSelect2CustomJS.js</strong>, which contains scripts for customizing the Select2 library used to output categories in various locations. It is recommended to move these scripts to a separate script file in your theme folder and disable this option.';
 // =========================================
 // END COT EXT CONFIG
 // =========================================
@@ -342,6 +348,7 @@ $L['market_catalog'] = 'Catalog';
 $L['market_price'] = 'Price';
 $L['market_price_international'] = 'Price in international currency (for conversion)';
 $L['market_price_base']          = 'Price/cost in base currency';
+$L['market_price_converted_label'] = $L['market_price_base'];
 $L['market_go_to_catalog'] = 'Go to items';
 $L['market_no_products'] = 'No items';
 $L['market_catEmpty'] = 'There are no items in this category yet';

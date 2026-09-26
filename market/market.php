@@ -91,7 +91,7 @@ Hooks=module
  * ReadMeMore:          https://abuyfile.com/ru/market/cotonti/plugs/marketpro
  * Support:             https://abuyfile.com/ru/forums/cotonti/custom/marketpro
  *
- * Date: Sep 10, 2026
+ * Date: Sep 26, 2026
  *
  * @package market
  * @version 5.7.9

@@ -15,7 +15,7 @@
  * ReadMeMore:          https://abuyfile.com/ru/market/cotonti/plugs/marketpro
  * Support:             https://abuyfile.com/ru/forums/cotonti/custom/marketpro
  *
- * Date: Sep 22, 2026
+ * Date: Sep 26, 2026
  *
  * @package market
  * @version 5.7.9
@@ -114,6 +114,12 @@ $L['cfg_marketcount_admin_hint'] = 'Включить посещения адми
 
 $L['cfg_marketautovalidate'] = 'Автоматическое утверждение товаров';
 $L['cfg_marketautovalidate_hint'] = 'Автоматически утверждать публикацию товаров, созданных пользователем с правом администрирования раздела';
+
+$L['cfg_market_select2_custom_css'] = 'Подключать пользовательские стили Select2 из модуля Market';
+$L['cfg_market_select2_custom_css_hint'] = 'Подключает файл <strong>modules/market/css/marketSelect2CustomStyles.css</strong> в котором лежат стили для кастомизации библиотеки Select2 через которую выводим категории в разных локациях. Рекомендуется стили перенести в файл стилей темы и эту опцию отключить.';
+
+$L['cfg_market_select2_custom_js'] = 'Подключать пользовательские скрипты Select2 из модуля Market';
+$L['cfg_market_select2_custom_js_hint'] = 'Подключает файл <strong>modules/market/js/marketSelect2CustomJS.js</strong> в котором лежат скрипты для кастомизации библиотеки Select2 через которую выводим категории в разных локациях. Рекомендуется эти скрипты перенести в отдельный файл скриптов в папку вашей темы и эту опцию отключить.';
 // =========================================
 // END COT EXT CONFIG
 // =========================================
@@ -343,6 +349,7 @@ $L['market_catalog'] = 'Каталог';
 $L['market_price'] = 'Цена';
 $L['market_price_international'] = 'Цена в международной валюте (для конвертации)';
 $L['market_price_base']          = 'Цена/стоимость в базовой валюте';
+$L['market_price_converted_label'] = $L['market_price_base'];
 $L['market_go_to_catalog'] = 'Перейти к товарам';
 $L['market_no_products'] = 'Нет товаров';
 $L['market_catEmpty'] = 'В категории пока нет товаров';

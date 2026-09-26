@@ -6,7 +6,7 @@ Name=Market PRO
 Category=commerce
 Description=Store Items and Categories
 Version=5.7.9
-Date=2026-09-10
+Date=2026-09-26
 Author=webitproff
 Copyright=(c) webitproff 2026 | https://github.com/webitproff/marketpro-cotonti
 Notes=
@@ -23,9 +23,9 @@ Recommends_plugins=
 [BEGIN_COT_EXT_CONFIG]
 marketlist_default_title=10:string::Заголовок магазина по-умолчанию, когда не выбрана категория или товар:
 marketlist_default_desc=11:textarea::Описание магазина по-умолчанию, когда не выбрана категория или товар:
-market_currency=21:string::грн.:
+market_currency=21:string:::
 market_for_rate_base_currency_cost_usd=22:string::USD:
-market_rate_value_fieldmrkt_costdflt_to_cost_usd=23:string::44.50:
+market_rate_value_fieldmrkt_costdflt_to_cost_usd=23:string::3.50:
 market_currency_schema_org=25:select:USD,EUR,RUB,UAH,KZT,BYN,UZS,KGS,TJS,TMT,AZN,AMD,MDL,JPY,CNY,BTC:BTC:
 marketmaxlistsperpage=30:select:5,6,7,8,9,10,15,50,100:10:
 marketmaxlistsperpageadmin=31:select:10,15,25,30,40,50,100:10:Items in Admin List
@@ -35,6 +35,8 @@ marketmarkup=60:radio::1:
 marketparser=61:callback:cot_get_parsers():none:
 marketcount_admin=70:radio::0:
 marketautovalidate=71:radio::1:
+market_select2_custom_css=72:radio::1:
+market_select2_custom_js=73:radio::1:
 [END_COT_EXT_CONFIG]
 
 [BEGIN_COT_EXT_CONFIG_STRUCTURE]
@@ -61,7 +63,7 @@ marketmaxlistsperpageincat=09:select:5,6,7,8,9,10,15,9:10:
  * ReadMeMore:          https://abuyfile.com/ru/market/cotonti/plugs/marketpro
  * Support:             https://abuyfile.com/ru/forums/cotonti/custom/marketpro
  *
- * Date: Sep 19, 2026
+ * Date: Sep 26, 2026
  *
  * @package    market
  * @subpackage Setup
